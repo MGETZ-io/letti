@@ -13,6 +13,7 @@
             --mid-pink: #D1208A;
             --black: #000000;
             --twitch-purple: #9146FF;
+            --live-green: #00FF00;
         }
 
         * { box-sizing: border-box; font-family: 'Arial Black', sans-serif; }
@@ -144,18 +145,18 @@
     <header class="hero">
         <h1>
             <span class="satz-1">LETTI IST</span><br>
-            <span class="satz-2">JETZT LIVE?</span>
+            <span class="satz-2" id="live-header">PRÜFE STATUS...</span>
         </h1>
     </header>
 
     <div class="stream-container">
         <div class="live-stats">
             <div class="stat-card">
-                <span class="stat-value" id="follower-count">Check Twitch</span>
+                <span class="stat-value" id="follower-count">...</span>
                 <span class="stat-label">Follower</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value" id="sub-count">LIVE</span>
+                <span class="stat-value" id="sub-count">...</span>
                 <span class="stat-label">Status</span>
             </div>
         </div>
@@ -191,6 +192,47 @@
     <footer>
        DESIGNED AND CODED BY Hustensaft
     </footer>
+
+    <script>
+        async function updateTwitchStats() {
+            const channel = 'lettiskram';
+            
+            try {
+                // 1. Follower-Zahl abrufen
+                const followRes = await fetch(`https://decapi.me/twitch/followcount/${channel}`);
+                const followerCount = await followRes.text();
+                
+                if(followerCount && !followerCount.includes("No user")) {
+                    document.getElementById('follower-count').innerText = Number(followerCount).toLocaleString();
+                }
+
+                // 2. Online-Status / Uptime abrufen
+                const uptimeRes = await fetch(`https://decapi.me/twitch/uptime/${channel}`);
+                const uptime = await uptimeRes.text();
+                
+                const subBox = document.getElementById('sub-count');
+                const liveHeader = document.getElementById('live-header');
+
+                if(uptime.includes("offline")) {
+                    subBox.innerText = "OFFLINE";
+                    subBox.style.color = "#555";
+                    liveHeader.innerText = "GERADE OFFLINE";
+                } else {
+                    subBox.innerText = "LIVE";
+                    subBox.style.color = "var(--live-green)";
+                    liveHeader.innerText = "JETZT LIVE!";
+                    liveHeader.style.color = "var(--live-green)";
+                }
+
+            } catch (error) {
+                console.log("Stats konnten nicht geladen werden");
+            }
+        }
+
+        // Initialer Aufruf und Intervall alle 60 Sekunden
+        updateTwitchStats();
+        setInterval(updateTwitchStats, 60000);
+    </script>
 
 </body>
 </html>
